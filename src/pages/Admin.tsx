@@ -1,9 +1,10 @@
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/LoginForm';
-import { Dashboard } from '@/components/Dashboard';
+import { AdminDashboard } from '@/components/AdminDashboard';
+import { Navigate } from 'react-router-dom';
 
-const AppContent = () => {
-  const { isAuthenticated, loading } = useAuth();
+const AdminContent = () => {
+  const { isAuthenticated, isAdmin, loading } = useAuth();
 
   if (loading) {
     return (
@@ -17,18 +18,23 @@ const AppContent = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginForm />;
+    return <LoginForm forceLogin={true} />;
   }
 
-  return <Dashboard />;
+  if (!isAdmin) {
+    // Se estiver logado mas não for admin, volta pro dashboard normal
+    return <Navigate to="/" replace />;
+  }
+
+  return <AdminDashboard />;
 };
 
-const Index = () => {
+const Admin = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <AdminContent />
     </AuthProvider>
   );
 };
 
-export default Index;
+export default Admin;

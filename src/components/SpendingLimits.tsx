@@ -45,12 +45,12 @@ export const SpendingLimits = ({ analysis }: SpendingLimitsProps) => {
   return (
     <div className="card-hooked animate-fade-in group h-full">
       <div className="p-6 sm:p-8">
-        <div className="flex items-center gap-5 mb-8">
-          <div className="p-4 rounded-3xl bg-accent/15 border border-accent/20 shadow-sm shrink-0">
-            <Wallet className="h-7 w-7 text-accent" />
+        <div className="flex items-center gap-4 sm:gap-5 mb-6 sm:mb-8">
+          <div className="p-3 sm:p-4 rounded-3xl bg-accent/15 border border-accent/20 shadow-sm shrink-0">
+            <Wallet className="h-6 w-6 sm:h-7 sm:w-7 text-accent" />
           </div>
           <div>
-            <h3 className="text-2xl font-black text-foreground tracking-tight">Onde está o limite?</h3>
+            <h3 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">Onde está o limite?</h3>
             <p className="text-base font-medium text-muted-foreground">Analise quanto você ainda pode gastar com segurança.</p>
           </div>
         </div>
@@ -71,14 +71,14 @@ export const SpendingLimits = ({ analysis }: SpendingLimitsProps) => {
               return (
                 <div
                   key={limit.label}
-                  className="flex items-center gap-5 p-5 sm:p-6 rounded-3xl bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-border/40 transition-all duration-300 hover-lift"
+                  className="flex items-center gap-4 sm:gap-5 p-4 sm:p-6 rounded-3xl bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-border/40 transition-all duration-300 hover-lift"
                 >
-                  <div className={`p-4 rounded-2xl ${limit.iconBg} shrink-0 shadow-sm`}>
-                    <Icon className={`h-6 w-6 ${limit.iconColor}`} />
+                  <div className={`p-3 sm:p-4 rounded-2xl ${limit.iconBg} shrink-0 shadow-sm`}>
+                    <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${limit.iconColor}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">{limit.label}</p>
-                    <p className="text-2xl font-black text-foreground tabular-nums tracking-tight">{formatCurrency(limit.value)}</p>
+                    <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5 sm:mb-1 truncate">{limit.label}</p>
+                    <p className="text-lg sm:text-2xl font-black text-foreground tabular-nums tracking-tight truncate">{formatCurrency(limit.value)}</p>
                   </div>
                   <div className="hidden sm:block text-right">
                     <p className="text-xs font-bold text-muted-foreground/60 leading-tight max-w-[120px]">

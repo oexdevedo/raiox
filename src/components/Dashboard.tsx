@@ -186,12 +186,12 @@ export const Dashboard = () => {
 
       {/* Progress Stepper - Optimized UI */}
       <div className="bg-muted/5 border-b border-border/5">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="relative flex justify-between items-center px-4">
+        <div className="container mx-auto px-2 sm:px-4 py-6 sm:py-8 max-w-4xl">
+          <div className="relative flex justify-between items-center px-2 sm:px-12">
             {/* Progress line */}
-            <div className="absolute top-[22px] left-8 right-8 h-0.5 bg-border/20 z-0" />
+            <div className="absolute top-[22px] left-6 sm:left-16 right-6 sm:right-16 h-0.5 bg-border/20 z-0" />
             <div 
-              className="absolute top-[22px] left-8 h-0.5 bg-accent transition-all duration-700 ease-in-out z-0"
+              className="absolute top-[22px] left-6 sm:left-16 h-0.5 bg-accent transition-all duration-700 ease-in-out z-0"
               style={{ width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - 3rem)` }}
             />
 

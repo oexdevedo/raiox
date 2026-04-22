@@ -24,8 +24,8 @@ const STEPS = [
 
 type Mode = 'register' | 'login';
 
-export const LoginForm = () => {
-  const [mode, setMode] = useState<Mode>('register');
+export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {}) => {
+  const [mode, setMode] = useState<Mode>(forceLogin ? 'login' : 'register');
   const [currentStep, setCurrentStep] = useState(0);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -222,10 +222,17 @@ export const LoginForm = () => {
                 {isSubmitting ? 'Entrando...' : 'Acessar Painel'}
               </Button>
 
-              <button onClick={() => setMode('register')}
-                className="w-full mt-6 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
-                ← Voltar para o Diagnóstico
-              </button>
+              {!forceLogin ? (
+                <button onClick={() => setMode('register')}
+                  className="w-full mt-6 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
+                  ← Voltar para o Diagnóstico
+                </button>
+              ) : (
+                <a href="/"
+                  className="block text-center w-full mt-6 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
+                  ← Voltar para o Início
+                </a>
+              )}
             </div>
           </div>
         </main>
@@ -378,9 +385,6 @@ export const LoginForm = () => {
                 Atalho: <kbd className="px-2 py-1 rounded-lg bg-muted text-muted-foreground text-[10px]">ENTER</kbd>
               </p>
             </div>
-            <button onClick={() => setMode('login')} className="text-xs font-black text-primary/40 hover:text-primary uppercase tracking-widest transition-colors">
-              Painel Admin
-            </button>
           </div>
         </div>
       </main>

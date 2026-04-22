@@ -61,41 +61,41 @@ export const FinancialStatus = ({ analysis }: FinancialStatusProps) => {
             <StatusIcon className={`h-8 w-8 ${config.iconColor}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl font-black text-foreground mb-1 tracking-tight">{config.title}</h3>
+            <h3 className="text-lg sm:text-xl font-black text-foreground mb-1 tracking-tight">{config.title}</h3>
             <p className="text-base font-medium text-muted-foreground">{config.description}</p>
           </div>
         </div>
 
         {/* Financial summary cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-          <div className="bg-card rounded-2xl p-4 sm:p-5 text-center shadow-sm border border-border/40 hover-lift">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="p-1.5 rounded-lg bg-emerald-500/10">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-6 sm:mt-8">
+          <div className="bg-card rounded-2xl p-2 sm:p-5 text-center shadow-sm border border-border/40 hover-lift">
+            <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+              <div className="hidden sm:block p-1.5 rounded-lg bg-emerald-500/10">
                 <TrendingUp className="h-4 w-4 text-emerald-600" />
               </div>
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Receitas</p>
+              <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest sm:tracking-[0.2em] truncate">Receitas</p>
             </div>
-            <p className="text-xl font-black text-emerald-600 tabular-nums tracking-tight">{formatCurrency(totalIncome)}</p>
+            <p className="text-sm sm:text-xl font-black text-emerald-600 tabular-nums tracking-tighter sm:tracking-tight truncate">{formatCurrency(totalIncome)}</p>
           </div>
           
-          <div className="bg-card rounded-2xl p-4 sm:p-5 text-center shadow-sm border border-border/40 hover-lift">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="p-1.5 rounded-lg bg-red-500/10">
+          <div className="bg-card rounded-2xl p-2 sm:p-5 text-center shadow-sm border border-border/40 hover-lift">
+            <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+              <div className="hidden sm:block p-1.5 rounded-lg bg-red-500/10">
                 <TrendingDown className="h-4 w-4 text-red-600" />
               </div>
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Despesas</p>
+              <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest sm:tracking-[0.2em] truncate">Despesas</p>
             </div>
-            <p className="text-xl font-black text-red-600 tabular-nums tracking-tight">{formatCurrency(totalExpenses)}</p>
+            <p className="text-sm sm:text-xl font-black text-red-600 tabular-nums tracking-tighter sm:tracking-tight truncate">{formatCurrency(totalExpenses)}</p>
           </div>
           
-          <div className="bg-card rounded-2xl p-4 sm:p-5 text-center shadow-sm border border-border/40 hover-lift">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="p-1.5 rounded-lg bg-primary/10">
+          <div className="bg-card rounded-2xl p-2 sm:p-5 text-center shadow-sm border border-border/40 hover-lift">
+            <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+              <div className="hidden sm:block p-1.5 rounded-lg bg-primary/10">
                 <Equal className="h-4 w-4 text-primary" />
               </div>
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Saldo</p>
+              <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest sm:tracking-[0.2em] truncate">Saldo</p>
             </div>
-            <p className={`text-xl font-black tabular-nums tracking-tight ${balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            <p className={`text-sm sm:text-xl font-black tabular-nums tracking-tighter sm:tracking-tight truncate ${balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {formatCurrency(balance)}
             </p>
           </div>
