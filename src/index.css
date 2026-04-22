@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Raio X Ex Devedor — Design System
+  ─────────────────────────────────
+  Orange:  #DFA83F  → accent / CTA
+  Yellow:  #FCCF86  → secondary / highlight
+  Blue:    #061A35  → primary / buttons / text
+  Gray:    #E1E2E5  → background
+*/
+
+@layer base {
+  :root {
+    /* ── Light Mode (Default) ────────────────────────────────────── */
+    --background: 228 10% 89.4%;       /* #E1E2E5 - Cinza Principal */
+    --foreground: 216 73% 12%;         /* #061A35 - Texto */
+
+    --card: 0 0% 100%;
+    --card-foreground: 216 73% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 73% 12%;
+
+    --primary: 216 73% 12%;            /* #061A35 */
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 39 96% 76%;           /* #FCCF86 */
+    --secondary-foreground: 216 73% 12%;
+
+    --accent: 38 72% 56%;              /* #DFA83F */
+    --accent-foreground: 216 73% 12%;
+
+    --muted: 220 7% 85%;
+    --muted-foreground: 215 25% 27%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 220 7% 80%;
+    --input: 220 7% 80%;
+    --ring: 38 72% 56%;
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    /* ── Dark Mode ─────────────────────────────────────────────── */
+    --background: 216 73% 9%;          /* #061A35 - Escurecido */
+    --foreground: 228 10% 89.4%;       /* #E1E2E5 - Texto Claro */
+
+    --card: 216 73% 12%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 216 73% 12%;
+    --popover_foreground: 210 20% 98%;
+
+    --primary: 38 72% 56%;             /* #DFA83F em Dark Mode se torna Primário */
+    --primary-foreground: 216 73% 9%;
+
+    --secondary: 216 60% 20%;
+    --secondary-foreground: 210 20% 98%;
+
+    --accent: 38 72% 56%;
+    --accent-foreground: 216 73% 9%;
+
+    --muted: 216 60% 18%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --border: 216 60% 20%;
+    --input: 216 60% 20%;
+    --ring: 38 72% 56%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased transition-colors duration-300;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* ── Utilities ───────────────────────────────────────────────────── */
+
+@layer utilities {
+  .gradient-hero {
+    @apply bg-background; /* Mudando para cor de fundo base em vez de gradiente fixo */
+  }
+
+  .glass {
+    @apply bg-card/70 backdrop-blur-md border border-white/10;
+  }
+
+  /* Shadow logic that respects theme */
+  .shadow-hooked {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .dark .shadow-hooked {
+    box-shadow: 0 4px 25px -4px rgba(0, 0, 0, 0.4);
+  }
+
+  .card-hooked {
+    @apply bg-card rounded-3xl shadow-hooked border border-border/40 transition-all duration-300;
+  }
+
+  .btn-accent {
+    @apply rounded-2xl font-bold transition-all duration-200 active:scale-95;
+    background: linear-gradient(135deg, #DFA83F 0%, #FCCF86 100%);
+    color: #061A35;
+  }
+  
+  .btn-accent:hover {
+    @apply shadow-lg;
+    filter: brightness(1.05);
+  }
+}
