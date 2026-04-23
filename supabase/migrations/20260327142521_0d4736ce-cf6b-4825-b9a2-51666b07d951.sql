@@ -17,6 +17,8 @@ CREATE TABLE public.profiles (
   birth_date TEXT NOT NULL,
   whatsapp TEXT NOT NULL,
   profession TEXT NOT NULL DEFAULT '',
+  contact_status TEXT NOT NULL DEFAULT 'Pendente',
+  last_contact_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
@@ -132,3 +134,31 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 CREATE TRIGGER on_auth_user_created
 AFTER INSERT ON auth.users
 FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Custom Buttons table
+CREATE TABLE public.custom_buttons (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  config JSONB NOT NULL DEFAULT '{}'
+);
+
+ALTER TABLE public.custom_buttons ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read for custom buttons" ON public.custom_buttons FOR SELECT TO PUBLIC USING (true);
+CREATE POLICY "Admins can update custom buttons" ON public.custom_buttons FOR UPDATE USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can insert custom buttons" ON public.custom_buttons FOR INSERT WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+-- Interactions table
+CREATE TABLE public.interactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+ALTER TABLE public.interactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert their own interactions" ON public.interactions FOR INSERT TO PUBLIC WITH CHECK (true);
+CREATE POLICY "Admins can view interactions" ON public.interactions FOR SELECT USING (public.has_role(auth.uid(), 'admin'));
+
+-- Seed default custom buttons
+INSERT INTO public.custom_buttons (id, config) 
+VALUES (1, '{"negative":{"visible":false,"label":"","url":"","message":""},"neutral":{"visible":false,"label":"","url":"","message":""},"positive":{"visible":false,"label":"","url":"","message":""}}')
+ON CONFLICT (id) DO NOTHING;

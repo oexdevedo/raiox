@@ -1,13 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { apiRegister, apiLogin, ApiUser } from '@/lib/api';
-import { setSecureItem, getSecureItem } from '@/lib/storage';
-
-const SESSION_KEY = 'raiox_session';
-
-interface SessionData {
-  user: ApiUser;
-  isAdmin: boolean;
-}
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: ApiUser | null;
@@ -27,23 +21,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Restore session from localStorage
-  useEffect(() => {
-    const saved = getSecureItem<SessionData>(SESSION_KEY);
-    if (saved?.user) {
-      setUser(saved.user);
-      setIsAdmin(saved.isAdmin);
-    }
-    setLoading(false);
-  }, []);
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
 
-  const persistSession = (data: SessionData | null) => {
-    if (data) {
-      setSecureItem(SESSION_KEY, data);
-    } else {
-      localStorage.removeItem(SESSION_KEY);
+      if (profile) {
+        setUser({ ...profile, id: userId } as ApiUser);
+        setIsAdmin(!!roleData);
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
     }
   };
+
+  useEffect(() => {
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        fetchProfile(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        fetchProfile(session.user.id);
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const signUp = useCallback(async (email: string, metadata: Record<string, string>) => {
     try {
@@ -56,12 +79,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         whatsapp: metadata.whatsapp || '',
         profession: metadata.profession || '',
       });
-
-      const session: SessionData = { user: result.user, isAdmin: false };
-      setUser(result.user);
-      setIsAdmin(false);
-      persistSession(session);
-
       return { error: null };
     } catch (err) {
       return { error: err as Error };
@@ -71,11 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = useCallback(async (email: string, password: string) => {
     try {
       const result = await apiLogin(email, password);
-      const session: SessionData = { user: result.user, isAdmin: result.isAdmin };
-      setUser(result.user);
-      setIsAdmin(result.isAdmin);
-      persistSession(session);
-
+      // Profile will be set by onAuthStateChange listener
       return { error: null };
     } catch (err) {
       return { error: err as Error };
@@ -83,9 +96,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setIsAdmin(false);
-    persistSession(null);
   }, []);
 
   return (
@@ -111,3 +124,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
