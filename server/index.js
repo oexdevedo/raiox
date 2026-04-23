@@ -1,9 +1,12 @@
 import { createServer } from 'node:http';
-import db from './db.js';
+import db, { initDB } from './db.js';
 import crypto from 'node:crypto';
 
 const PORT = process.env.PORT || 3002;
 const N8N_WEBHOOK_URL = 'https://tutu-n8n.mypaeg.easypanel.host/webhook/raiox';
+
+// Initialize DB
+initDB().catch(console.error);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -36,10 +39,11 @@ const syncN8n = (action, payload) => {
     body: JSON.stringify({ action, timestamp: new Date().toISOString(), ...payload }),
   }).catch(() => {});
 };
+
 /** Log user interaction */
-const logInteraction = (email, action) => {
+const logInteraction = async (email, action) => {
   try {
-    db.prepare('INSERT INTO interactions (user_email, action) VALUES (?, ?)').run(email || 'anonymous', action);
+    await db.query('INSERT INTO interactions (user_email, action) VALUES (?, ?)', [email || 'anonymous', action]);
   } catch (err) {
     console.error('[LOG] Interaction error:', err);
   }
@@ -91,20 +95,21 @@ const server = createServer(async (req, res) => {
       const { name, email, gender, region, birth_date, whatsapp, profession } = await parseBody(req);
       if (!email || !name) return json(res, { error: 'Name and email are required' }, 400);
 
-      const stmt = db.prepare(`
+      await db.query(`
         INSERT INTO users (name, email, gender, region, birth_date, whatsapp, profession)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(email) DO UPDATE SET
-          name = CASE WHEN excluded.name != '' THEN excluded.name ELSE name END,
-          gender = CASE WHEN excluded.gender != '' THEN excluded.gender ELSE gender END,
-          region = CASE WHEN excluded.region != '' THEN excluded.region ELSE region END,
-          birth_date = CASE WHEN excluded.birth_date != '' THEN excluded.birth_date ELSE birth_date END,
-          whatsapp = CASE WHEN excluded.whatsapp != '' THEN excluded.whatsapp ELSE whatsapp END,
-          profession = CASE WHEN excluded.profession != '' THEN excluded.profession ELSE profession END
-      `);
-      stmt.run(name, email, gender || '', region || '', birth_date || '', whatsapp || '', profession || '');
+        ON DUPLICATE KEY UPDATE
+          name = IF(VALUES(name) != '', VALUES(name), name),
+          gender = IF(VALUES(gender) != '', VALUES(gender), gender),
+          region = IF(VALUES(region) != '', VALUES(region), region),
+          birth_date = IF(VALUES(birth_date) != '', VALUES(birth_date), birth_date),
+          whatsapp = IF(VALUES(whatsapp) != '', VALUES(whatsapp), whatsapp),
+          profession = IF(VALUES(profession) != '', VALUES(profession), profession)
+      `, [name, email, gender || '', region || '', birth_date || '', whatsapp || '', profession || '']);
 
-      const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+      const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+      const user = users[0];
+      
       syncN8n('user_register', { user });
       logInteraction(email, 'register');
       return json(res, { success: true, user });
@@ -115,7 +120,8 @@ const server = createServer(async (req, res) => {
       if (!email || !password) return json(res, { error: 'E-mail e senha são obrigatórios' }, 400);
 
       const hash = crypto.createHash('sha256').update(password).digest('hex');
-      const admin = db.prepare('SELECT id, email, created_at FROM admins WHERE LOWER(email) = LOWER(?) AND password_hash = ?').get(email, hash);
+      const [admins] = await db.query('SELECT id, email, created_at FROM admins WHERE LOWER(email) = LOWER(?) AND password_hash = ?', [email, hash]);
+      const admin = admins[0];
       
       if (admin) {
         return json(res, { success: true, isAdmin: true, user: admin });
@@ -126,13 +132,14 @@ const server = createServer(async (req, res) => {
     params = matchRoute(pathname, '/api/check-user/:email');
     if (params && method === 'GET') {
       const decodedEmail = decodeURIComponent(params.email).toLowerCase();
-      const user = db.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(decodedEmail);
+      const [users] = await db.query('SELECT * FROM users WHERE LOWER(email) = ?', [decodedEmail]);
+      const user = users[0];
       return json(res, { exists: !!user, user: user || null });
     }
 
     // ── Admins ──────────────────────────────────────────────────────────────
     if (pathname === '/api/admins' && method === 'GET') {
-      const admins = db.prepare('SELECT id, email, created_at FROM admins ORDER BY created_at DESC').all();
+      const [admins] = await db.query('SELECT id, email, created_at FROM admins ORDER BY created_at DESC');
       return json(res, admins);
     }
 
@@ -142,10 +149,10 @@ const server = createServer(async (req, res) => {
 
       try {
         const hash = crypto.createHash('sha256').update(password).digest('hex');
-        db.prepare('INSERT INTO admins (email, password_hash) VALUES (?, ?)').run(email, hash);
+        await db.query('INSERT INTO admins (email, password_hash) VALUES (?, ?)', [email, hash]);
         return json(res, { success: true });
       } catch (err) {
-        if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        if (err.code === 'ER_DUP_ENTRY') {
           return json(res, { error: 'Admin já cadastrado' }, 409);
         }
         throw err;
@@ -154,30 +161,31 @@ const server = createServer(async (req, res) => {
 
     params = matchRoute(pathname, '/api/admins/:email');
     if (params && method === 'DELETE') {
-      db.prepare('DELETE FROM admins WHERE email = ?').run(params.email);
+      await db.query('DELETE FROM admins WHERE email = ?', [params.email]);
       return json(res, { success: true });
     }
 
     // ── Users (admin panel) ──────────────────────────────────────────────────
     if (pathname === '/api/users' && method === 'GET') {
-      const users = db.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
+      const [users] = await db.query('SELECT * FROM users ORDER BY created_at DESC');
       return json(res, users);
     }
 
     if (pathname === '/api/interactions' && method === 'GET') {
-      const interactions = db.prepare('SELECT * FROM interactions ORDER BY created_at DESC').all();
+      const [interactions] = await db.query('SELECT * FROM interactions ORDER BY created_at DESC');
       return json(res, interactions);
     }
 
     params = matchRoute(pathname, '/api/users/:email');
     if (params && method === 'DELETE') {
-      db.prepare('DELETE FROM users WHERE email = ?').run(params.email);
+      await db.query('DELETE FROM users WHERE email = ?', [params.email]);
       syncN8n('user_delete', { email: params.email });
       return json(res, { success: true });
     }
     if (params && method === 'PUT') {
       const updates = await parseBody(req);
-      const currentUser = db.prepare('SELECT contact_status FROM users WHERE email = ?').get(params.email);
+      const [currentUsers] = await db.query('SELECT contact_status FROM users WHERE email = ?', [params.email]);
+      const currentUser = currentUsers[0];
       
       let queryStr = `UPDATE users SET name = ?, gender = ?, region = ?, birth_date = ?, whatsapp = ?, profession = ?, contact_status = ?`;
       const paramsList = [
@@ -193,23 +201,23 @@ const server = createServer(async (req, res) => {
       if (updates.last_contact_at !== undefined) {
         queryStr += ", last_contact_at = ?";
         paramsList.push(updates.last_contact_at);
-      } else if (updates.contact_status && updates.contact_status !== currentUser.contact_status) {
-        queryStr += ", last_contact_at = datetime('now', 'localtime')";
+      } else if (updates.contact_status && updates.contact_status !== currentUser?.contact_status) {
+        queryStr += ", last_contact_at = NOW()";
       }
 
       queryStr += " WHERE email = ?";
       paramsList.push(params.email);
 
-      db.prepare(queryStr).run(...paramsList);
+      await db.query(queryStr, paramsList);
       
-      const updated = db.prepare('SELECT * FROM users WHERE email = ?').get(params.email);
-      return json(res, { success: true, user: updated });
+      const [updatedUsers] = await db.query('SELECT * FROM users WHERE email = ?', [params.email]);
+      return json(res, { success: true, user: updatedUsers[0] });
     }
 
     // ── Incomes ─────────────────────────────────────────────────────────────
     params = matchRoute(pathname, '/api/incomes/:email');
     if (params && method === 'GET') {
-      const incomes = db.prepare('SELECT * FROM incomes WHERE user_email = ? ORDER BY created_at DESC').all(params.email);
+      const [incomes] = await db.query('SELECT * FROM incomes WHERE user_email = ? ORDER BY created_at DESC', [params.email]);
       return json(res, incomes);
     }
 
@@ -217,8 +225,10 @@ const server = createServer(async (req, res) => {
       const { user_email, description, amount } = await parseBody(req);
       if (!user_email || !description || amount == null) return json(res, { error: 'Missing fields' }, 400);
 
-      const result = db.prepare('INSERT INTO incomes (user_email, description, amount) VALUES (?, ?, ?)').run(user_email, description, amount);
-      const income = db.prepare('SELECT * FROM incomes WHERE id = ?').get(result.lastInsertRowid);
+      const [result] = await db.query('INSERT INTO incomes (user_email, description, amount) VALUES (?, ?, ?)', [user_email, description, amount]);
+      const [incomes] = await db.query('SELECT * FROM incomes WHERE id = ?', [result.insertId]);
+      const income = incomes[0];
+      
       syncN8n('add_income', { user_email, income });
       logInteraction(user_email, 'add_income');
       return json(res, { success: true, income }, 201);
@@ -226,8 +236,9 @@ const server = createServer(async (req, res) => {
 
     params = matchRoute(pathname, '/api/incomes/:id');
     if (params && method === 'DELETE') {
-      const income = db.prepare('SELECT * FROM incomes WHERE id = ?').get(params.id);
-      db.prepare('DELETE FROM incomes WHERE id = ?').run(params.id);
+      const [incomes] = await db.query('SELECT * FROM incomes WHERE id = ?', [params.id]);
+      const income = incomes[0];
+      await db.query('DELETE FROM incomes WHERE id = ?', [params.id]);
       syncN8n('remove_income', { income });
       return json(res, { success: true });
     }
@@ -235,7 +246,7 @@ const server = createServer(async (req, res) => {
     // ── Expenses ────────────────────────────────────────────────────────────
     params = matchRoute(pathname, '/api/expenses/:email');
     if (params && method === 'GET') {
-      const expenses = db.prepare('SELECT * FROM expenses WHERE user_email = ? ORDER BY created_at DESC').all(params.email);
+      const [expenses] = await db.query('SELECT * FROM expenses WHERE user_email = ? ORDER BY created_at DESC', [params.email]);
       return json(res, expenses);
     }
 
@@ -243,8 +254,10 @@ const server = createServer(async (req, res) => {
       const { user_email, description, amount, category } = await parseBody(req);
       if (!user_email || !description || amount == null) return json(res, { error: 'Missing fields' }, 400);
 
-      const result = db.prepare('INSERT INTO expenses (user_email, description, amount, category) VALUES (?, ?, ?, ?)').run(user_email, description, amount, category || 'outros');
-      const expense = db.prepare('SELECT * FROM expenses WHERE id = ?').get(result.lastInsertRowid);
+      const [result] = await db.query('INSERT INTO expenses (user_email, description, amount, category) VALUES (?, ?, ?, ?)', [user_email, description, amount, category || 'outros']);
+      const [expenses] = await db.query('SELECT * FROM expenses WHERE id = ?', [result.insertId]);
+      const expense = expenses[0];
+      
       syncN8n('add_expense', { user_email, expense });
       logInteraction(user_email, 'add_expense');
       return json(res, { success: true, expense }, 201);
@@ -252,8 +265,9 @@ const server = createServer(async (req, res) => {
 
     params = matchRoute(pathname, '/api/expenses/:id');
     if (params && method === 'DELETE') {
-      const expense = db.prepare('SELECT * FROM expenses WHERE id = ?').get(params.id);
-      db.prepare('DELETE FROM expenses WHERE id = ?').run(params.id);
+      const [expenses] = await db.query('SELECT * FROM expenses WHERE id = ?', [params.id]);
+      const expense = expenses[0];
+      await db.query('DELETE FROM expenses WHERE id = ?', [params.id]);
       syncN8n('remove_expense', { expense });
       return json(res, { success: true });
     }
@@ -261,24 +275,24 @@ const server = createServer(async (req, res) => {
     // ── Behavioral ──────────────────────────────────────────────────────────
     params = matchRoute(pathname, '/api/behavioral/:email');
     if (params && method === 'GET') {
-      const row = db.prepare('SELECT * FROM behavioral_answers WHERE user_email = ?').get(params.email);
-      return json(res, row || null);
+      const [rows] = await db.query('SELECT * FROM behavioral_answers WHERE user_email = ?', [params.email]);
+      return json(res, rows[0] || null);
     }
 
     if (pathname === '/api/behavioral' && method === 'POST') {
       const { user_email, answers, total_score, total_percentage, level } = await parseBody(req);
       if (!user_email) return json(res, { error: 'Missing user_email' }, 400);
 
-      db.prepare(`
+      await db.query(`
         INSERT INTO behavioral_answers (user_email, answers, total_score, total_percentage, level, updated_at)
         VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT(user_email) DO UPDATE SET
-          answers = excluded.answers,
-          total_score = excluded.total_score,
-          total_percentage = excluded.total_percentage,
-          level = excluded.level,
+        ON DUPLICATE KEY UPDATE
+          answers = VALUES(answers),
+          total_score = VALUES(total_score),
+          total_percentage = VALUES(total_percentage),
+          level = VALUES(level),
           updated_at = CURRENT_TIMESTAMP
-      `).run(user_email, JSON.stringify(answers || {}), total_score || 0, total_percentage || 0, level || '');
+      `, [user_email, JSON.stringify(answers || {}), total_score || 0, total_percentage || 0, level || '']);
 
       syncN8n('behavioral_complete', { user_email, total_percentage, level });
       logInteraction(user_email, 'quiz_complete');
@@ -287,13 +301,14 @@ const server = createServer(async (req, res) => {
 
     // ── Custom Buttons ──────────────────────────────────────────────────────
     if (pathname === '/api/custom-buttons' && method === 'GET') {
-      const row = db.prepare('SELECT config FROM custom_buttons WHERE id = 1').get();
-      return json(res, row ? JSON.parse(row.config) : {});
+      const [rows] = await db.query('SELECT config FROM custom_buttons WHERE id = 1');
+      const row = rows[0];
+      return json(res, row ? row.config : {});
     }
 
     if (pathname === '/api/custom-buttons' && method === 'POST') {
       const config = await parseBody(req);
-      db.prepare('UPDATE custom_buttons SET config = ? WHERE id = 1').run(JSON.stringify(config));
+      await db.query('UPDATE custom_buttons SET config = ? WHERE id = 1', [JSON.stringify(config)]);
       return json(res, { success: true });
     }
 
@@ -306,6 +321,7 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[SERVER] Raio X backend running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`[SERVER] Raio X backend running on http://0.0.0.0:${PORT}`);
 });
+

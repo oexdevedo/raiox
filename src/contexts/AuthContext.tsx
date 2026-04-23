@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { apiRegister, apiLogin, ApiUser } from '@/lib/api';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 interface AuthContextType {
@@ -21,51 +20,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .single();
-      
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (profile) {
-        setUser({ ...profile, id: userId } as ApiUser);
-        setIsAdmin(!!roleData);
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-    }
-  };
-
+  // Initialize session from localStorage
   useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        fetchProfile(session.user.id);
+    const storedUser = localStorage.getItem('raiox_user');
+    const storedIsAdmin = localStorage.getItem('raiox_is_admin') === 'true';
+    
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+        setIsAdmin(storedIsAdmin);
+      } catch (err) {
+        console.error('Failed to parse stored user', err);
+        localStorage.removeItem('raiox_user');
+        localStorage.removeItem('raiox_is_admin');
       }
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        fetchProfile(session.user.id);
-      } else {
-        setUser(null);
-        setIsAdmin(false);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
   const signUp = useCallback(async (email: string, metadata: Record<string, string>) => {
@@ -79,6 +49,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         whatsapp: metadata.whatsapp || '',
         profession: metadata.profession || '',
       });
+      
+      if (result.success && result.user) {
+        setUser(result.user);
+        localStorage.setItem('raiox_user', JSON.stringify(result.user));
+        localStorage.setItem('raiox_is_admin', 'false');
+      }
+      
       return { error: null };
     } catch (err) {
       return { error: err as Error };
@@ -88,7 +65,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = useCallback(async (email: string, password: string) => {
     try {
       const result = await apiLogin(email, password);
-      // Profile will be set by onAuthStateChange listener
+      
+      if (result.success && result.user) {
+        setUser(result.user);
+        setIsAdmin(!!result.isAdmin);
+        localStorage.setItem('raiox_user', JSON.stringify(result.user));
+        localStorage.setItem('raiox_is_admin', String(!!result.isAdmin));
+        toast.success('Login realizado com sucesso!');
+      }
+      
       return { error: null };
     } catch (err) {
       return { error: err as Error };
@@ -96,9 +81,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
     setUser(null);
     setIsAdmin(false);
+    localStorage.removeItem('raiox_user');
+    localStorage.removeItem('raiox_is_admin');
+    toast.info('Sessão encerrada');
   }, []);
 
   return (

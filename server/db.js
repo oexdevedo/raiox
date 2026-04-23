@@ -1,128 +1,119 @@
-import Database from 'better-sqlite3';
-import path from 'node:path';
-import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 import crypto from 'node:crypto';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
-// Ensure data directory exists
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-const dbPath = path.join(dataDir, 'database.sqlite');
-const db = new Database(dbPath);
-
-// Enable WAL mode for better concurrent performance
-db.pragma('journal_mode = WAL');
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'raiox',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
 // Initialize database schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    gender TEXT NOT NULL DEFAULT '',
-    region TEXT NOT NULL DEFAULT '',
-    birth_date TEXT NOT NULL DEFAULT '',
-    whatsapp TEXT NOT NULL DEFAULT '',
-    profession TEXT NOT NULL DEFAULT '',
-    contact_status TEXT NOT NULL DEFAULT 'Pendente',
-    last_contact_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  -- Migration: Add gender column if it doesn't exist
-  PRAGMA table_info(users);
-`);
-
-// Check if gender column exists, if not add it
-const tableInfo = db.prepare("PRAGMA table_info(users)").all();
-const hasGender = tableInfo.some(col => col.name === 'gender');
-if (!hasGender) {
+export const initDB = async () => {
+  const connection = await pool.getConnection();
   try {
-    db.exec("ALTER TABLE users ADD COLUMN gender TEXT NOT NULL DEFAULT ''");
-    console.log('[DB] Migration: Added gender column to users table');
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        gender VARCHAR(50) NOT NULL DEFAULT '',
+        region VARCHAR(255) NOT NULL DEFAULT '',
+        birth_date VARCHAR(50) NOT NULL DEFAULT '',
+        whatsapp VARCHAR(50) NOT NULL DEFAULT '',
+        profession VARCHAR(255) NOT NULL DEFAULT '',
+        contact_status VARCHAR(50) NOT NULL DEFAULT 'Pendente',
+        last_contact_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS incomes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        description VARCHAR(255) NOT NULL,
+        amount DECIMAL(15, 2) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS expenses (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        description VARCHAR(255) NOT NULL,
+        amount DECIMAL(15, 2) NOT NULL,
+        category VARCHAR(100) NOT NULL DEFAULT 'outros',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS behavioral_answers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255) UNIQUE NOT NULL,
+        answers JSON NOT NULL,
+        total_score INT NOT NULL DEFAULT 0,
+        total_percentage INT NOT NULL DEFAULT 0,
+        level VARCHAR(100) NOT NULL DEFAULT '',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS custom_buttons (
+        id INT PRIMARY KEY,
+        config JSON NOT NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS admins (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS interactions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255),
+        action VARCHAR(255) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    // Seed default custom buttons config
+    await connection.query(`
+      INSERT IGNORE INTO custom_buttons (id, config) VALUES (1, '{"negative":{"visible":false,"label":"","url":"","message":""},"neutral":{"visible":false,"label":"","url":"","message":""},"positive":{"visible":false,"label":"","url":"","message":""}}')
+    `);
+
+    // Seed master admin
+    const masterEmail = 'exdevedor@exdevedor.com.br';
+    const masterPassword = 'Gr@nd34rtun@';
+    const hash = crypto.createHash('sha256').update(masterPassword).digest('hex');
+    await connection.query('INSERT IGNORE INTO admins (email, password_hash) VALUES (?, ?)', [masterEmail, hash]);
+
+    console.log('[DB] MySQL database initialized');
   } catch (err) {
-    console.error('[DB] Error during migration (gender):', err);
+    console.error('[DB] Initialization error:', err);
+  } finally {
+    connection.release();
   }
-}
+};
 
-const hasContactStatus = tableInfo.some(col => col.name === 'contact_status');
-if (!hasContactStatus) {
-  try {
-    db.exec("ALTER TABLE users ADD COLUMN contact_status TEXT NOT NULL DEFAULT 'Pendente'");
-    db.exec("ALTER TABLE users ADD COLUMN last_contact_at DATETIME");
-    console.log('[DB] Migration: Added contact status columns to users table');
-  } catch (err) {
-    console.error('[DB] Error during migration (contact_status):', err);
-  }
-}
+export default pool;
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS incomes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_email TEXT NOT NULL,
-    description TEXT NOT NULL,
-    amount REAL NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS expenses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_email TEXT NOT NULL,
-    description TEXT NOT NULL,
-    amount REAL NOT NULL,
-    category TEXT NOT NULL DEFAULT 'outros',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS behavioral_answers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_email TEXT UNIQUE NOT NULL,
-    answers TEXT NOT NULL DEFAULT '{}',
-    total_score INTEGER NOT NULL DEFAULT 0,
-    total_percentage INTEGER NOT NULL DEFAULT 0,
-    level TEXT NOT NULL DEFAULT '',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS custom_buttons (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    config TEXT NOT NULL DEFAULT '{}'
-  );
-
-  CREATE TABLE IF NOT EXISTS admins (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS interactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_email TEXT,
-    action TEXT NOT NULL,
-    created_at DATETIME DEFAULT (datetime('now', 'localtime'))
-  );
-
-  -- Seed default custom buttons config
-  INSERT OR IGNORE INTO custom_buttons (id, config) VALUES (1, '{"negative":{"visible":false,"label":"","url":"","message":""},"neutral":{"visible":false,"label":"","url":"","message":""},"positive":{"visible":false,"label":"","url":"","message":""}}');
-`);
-
-// Seed master admin
-const masterEmail = 'exdevedor@exdevedor.com.br';
-const masterPassword = 'Gr@nd34rtun@';
-const hash = crypto.createHash('sha256').update(masterPassword).digest('hex');
-db.prepare('INSERT OR IGNORE INTO admins (email, password_hash) VALUES (?, ?)').run(masterEmail, hash);
-
-console.log(`[DB] SQLite database initialized at ${dbPath}`);
-
-export default db;
