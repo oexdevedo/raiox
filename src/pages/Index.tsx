@@ -1,4 +1,4 @@
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/LoginForm';
 import { Dashboard } from '@/components/Dashboard';
 
@@ -24,11 +24,7 @@ const AppContent = () => {
 };
 
 const Index = () => {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
+  return <AppContent />;
 };
 
 export default Index;

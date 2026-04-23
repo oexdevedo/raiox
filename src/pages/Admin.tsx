@@ -1,4 +1,4 @@
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/LoginForm';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { Navigate } from 'react-router-dom';
@@ -30,11 +30,7 @@ const AdminContent = () => {
 };
 
 const Admin = () => {
-  return (
-    <AuthProvider>
-      <AdminContent />
-    </AuthProvider>
-  );
+  return <AdminContent />;
 };
 
 export default Admin;
