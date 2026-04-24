@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LogOut, Users, Download, Save, CheckCircle2, AlertTriangle, XCircle, Settings2, FileSpreadsheet, FileText, LineChart, Pencil, Trash2, UserCheck, MessageSquare, Calendar, MoreHorizontal, Phone, User as UserIcon, Shield, Plus, Key } from 'lucide-react';
+import { Logout01Icon as LogOut, UserGroupIcon as Users, Download01Icon as Download, FloppyDiskIcon as Save, CheckmarkCircle02Icon as CheckCircle2, Alert01Icon as AlertTriangle, CancelCircleIcon as XCircle, Settings02Icon as Settings2, File01Icon as FileSpreadsheet, File02Icon as FileText, ChartHistogramIcon as LineChart, PencilEdit01Icon as Pencil, Delete02Icon as Trash2, UserCheck01Icon as UserCheck, Message01Icon as MessageSquare, Calendar01Icon as Calendar, MoreHorizontalIcon as MoreHorizontal, SmartPhone01Icon as Phone, UserCircleIcon as UserIcon, SecurityCheckIcon as Shield, PlusSignIcon as Plus, Key01Icon as Key } from 'hugeicons-react';
 import { toast } from 'sonner';
 import { apiGetUsers, apiGetIncomes, apiGetExpenses, apiGetBehavioral, apiGetInteractions, apiUpdateUser, apiDeleteUser, apiGetAdmins, apiCreateAdmin, apiDeleteAdmin, ApiUser, ApiAdmin } from '@/lib/api';
 import { useIsMobile } from '@/hooks/use-mobile';

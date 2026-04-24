@@ -1,5 +1,5 @@
 import { FinancialAnalysis } from '@/types/financial';
-import { TrendingUp, TrendingDown, Equal, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { ArrowUpRight01Icon as TrendingUp, ArrowDownRight01Icon as TrendingDown, EqualSignIcon as Equal, CheckmarkCircle02Icon as CheckCircle2, CancelCircleIcon as XCircle, Alert01Icon as AlertTriangle } from 'hugeicons-react';
 
 interface FinancialStatusProps {
   analysis: FinancialAnalysis;
@@ -61,8 +61,8 @@ export const FinancialStatus = ({ analysis }: FinancialStatusProps) => {
             <StatusIcon className={`h-8 w-8 ${config.iconColor}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg sm:text-xl font-black text-foreground mb-1 tracking-tight">{config.title}</h3>
-            <p className="text-base font-medium text-muted-foreground">{config.description}</p>
+            <h3 className="text-base sm:text-xl font-black text-foreground mb-1 tracking-tight">{config.title}</h3>
+            <p className="text-sm sm:text-base font-medium text-muted-foreground">{config.description}</p>
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Expense } from '@/types/financial';
-import { Plus, Trash2, TrendingDown, DollarSign } from 'lucide-react';
+import { PlusSignIcon as Plus, Delete02Icon as Trash2, ArrowDownRight01Icon as TrendingDown, Dollar01Icon as DollarSign } from 'hugeicons-react';
 import { toast } from 'sonner';
 
 interface ExpenseFormProps {
@@ -66,17 +66,17 @@ export const ExpenseForm = ({ expenses, onAdd, onRemove }: ExpenseFormProps) => 
 
   return (
     <div className="card-hooked group min-h-full flex flex-col">
-      <div className="p-6 sm:p-8 flex-1">
+      <div className="p-4 sm:p-6 flex-1">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/20 shadow-sm">
               <TrendingDown className="h-5 w-5 text-red-600" />
             </div>
-            <h3 className="text-xl font-black text-foreground tracking-tight">Despesas</h3>
+            <h3 className="text-lg sm:text-xl font-black text-foreground tracking-tight">Despesas</h3>
           </div>
           <div className="px-4 py-2 rounded-xl bg-red-500/10">
-            <span className="text-lg font-black text-red-600 tabular-nums">{formatCurrency(total)}</span>
+            <span className="text-base sm:text-lg font-black text-red-600 tabular-nums">{formatCurrency(total)}</span>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export const ExpenseForm = ({ expenses, onAdd, onRemove }: ExpenseFormProps) => 
                 placeholder="Ex: Supermercado"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="h-12 bg-muted/20 border-border/40 focus:border-red-500/50 focus:ring-red-500/10 rounded-xl font-bold"
+                className="h-11 bg-muted/20 border-border/40 focus:border-red-500/50 focus:ring-red-500/10 rounded-xl font-bold text-sm"
               />
             </div>
             <div className="space-y-2">
@@ -105,7 +105,7 @@ export const ExpenseForm = ({ expenses, onAdd, onRemove }: ExpenseFormProps) => 
                   placeholder="0,00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="h-12 pl-9 bg-muted/20 border-border/40 focus:border-red-500/50 focus:ring-red-500/10 rounded-xl font-black tabular-nums"
+                  className="h-11 pl-9 bg-muted/20 border-border/40 focus:border-red-500/50 focus:ring-red-500/10 rounded-xl font-black tabular-nums text-sm"
                 />
               </div>
             </div>
@@ -114,7 +114,7 @@ export const ExpenseForm = ({ expenses, onAdd, onRemove }: ExpenseFormProps) => 
           <div className="space-y-2">
             <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Categoria</Label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="h-12 bg-muted/20 border-border/40 focus:border-red-500/50 focus:ring-red-500/10 rounded-xl font-bold">
+              <SelectTrigger className="h-11 bg-muted/20 border-border/40 focus:border-red-500/50 focus:ring-red-500/10 rounded-xl font-bold text-sm">
                 <SelectValue placeholder="Selecione o tipo de gasto" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl">
@@ -127,21 +127,21 @@ export const ExpenseForm = ({ expenses, onAdd, onRemove }: ExpenseFormProps) => 
             </Select>
           </div>
 
-          <Button type="submit" className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black text-base gap-3 shadow-lg shadow-red-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
-            <Plus className="h-5 w-5 stroke-[3]" />
+          <Button type="submit" className="w-full h-12 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-sm gap-2 shadow-md shadow-red-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <Plus className="h-4 w-4 stroke-[3]" />
             Adicionar à Lista
           </Button>
         </form>
 
         {/* List */}
         {expenses.length > 0 && (
-          <div className="space-y-3 pt-8 mt-8 border-t border-border/10">
-            <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] mb-4">Lançamentos Recentes</p>
-            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
+          <div className="space-y-3 pt-6 mt-6 border-t border-border/10">
+            <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] mb-3">Lançamentos Recentes</p>
+            <div className="space-y-2.5 max-h-[250px] overflow-y-auto pr-2 scrollbar-thin">
               {expenses.map((expense) => (
                 <div
                   key={expense.id}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-card border border-border/5 hover:border-red-500/20 transition-all group/item hover-lift shadow-sm hover:shadow-md"
+                  className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/5 hover:border-red-500/20 transition-all group/item hover-lift shadow-sm hover:shadow-md"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-1.5 h-8 bg-red-500/20 rounded-full" />

@@ -5,21 +5,21 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { ArrowRight, ArrowLeft, User, Mail, Phone, Calendar, MapPin, Check, Lock, ShieldCheck, Briefcase, Users } from 'lucide-react';
+import { ArrowRight01Icon, ArrowLeft01Icon, UserCircleIcon, Mail01Icon, SmartPhone01Icon, Calendar01Icon, Location01Icon, CheckmarkBadge01Icon, LockIcon, SecurityCheckIcon, Briefcase01Icon, UserGroup03Icon } from 'hugeicons-react';
 import { toast } from 'sonner';
 import { STATES } from '@/types/financial';
 import { Checkbox } from '@/components/ui/checkbox';
 import { apiCheckUser } from '@/lib/api';
 
 const STEPS = [
-  { id: 'email', label: 'Qual é o seu melhor e-mail?', subtitle: 'Usaremos para identificar seu histórico', icon: Mail },
-  { id: 'name', label: 'Qual é o seu nome completo?', subtitle: 'Nos conte como devemos te chamar', icon: User },
-  { id: 'gender', label: 'Qual é o seu sexo?', subtitle: 'Informação importante para o diagnóstico', icon: Users },
-  { id: 'region', label: 'Em qual estado você mora?', subtitle: 'Isso ajuda a personalizar seu diagnóstico', icon: MapPin },
-  { id: 'birthDate', label: 'Qual é a sua data de nascimento?', subtitle: 'Para analisar seu perfil financeiro', icon: Calendar },
-  { id: 'profession', label: 'Qual é a sua profissão?', subtitle: 'Entender sua área nos ajuda a orientar melhor', icon: Briefcase },
-  { id: 'whatsapp', label: 'Qual é o seu WhatsApp?', subtitle: 'Para enviarmos seu diagnóstico completo', icon: Phone },
-  { id: 'lgpd', label: 'Consentimento de uso de dados', subtitle: 'Privacidade é importante para nós', icon: ShieldCheck },
+  { id: 'email', label: 'Qual é o seu melhor e-mail?', subtitle: 'Usaremos para identificar seu histórico', icon: Mail01Icon },
+  { id: 'name', label: 'Qual é o seu nome completo?', subtitle: 'Nos conte como devemos te chamar', icon: UserCircleIcon },
+  { id: 'gender', label: 'Qual é o seu sexo?', subtitle: 'Informação importante para o diagnóstico', icon: UserGroup03Icon },
+  { id: 'region', label: 'Em qual estado você mora?', subtitle: 'Isso ajuda a personalizar seu diagnóstico', icon: Location01Icon },
+  { id: 'birthDate', label: 'Qual é a sua data de nascimento?', subtitle: 'Para analisar seu perfil financeiro', icon: Calendar01Icon },
+  { id: 'profession', label: 'Qual é a sua profissão?', subtitle: 'Entender sua área nos ajuda a orientar melhor', icon: Briefcase01Icon },
+  { id: 'whatsapp', label: 'Qual é o seu WhatsApp?', subtitle: 'Para enviarmos seu diagnóstico completo', icon: SmartPhone01Icon },
+  { id: 'lgpd', label: 'Consentimento de uso de dados', subtitle: 'Privacidade é importante para nós', icon: SecurityCheckIcon },
 ] as const;
 
 type Mode = 'register' | 'login';
@@ -107,17 +107,27 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
       const cleanEmail = email.trim().toLowerCase();
       setIsSubmitting(true);
       try {
+        // 1. Tentar fazer o login silencioso para ver se já tem conta
+        const { error: signInError } = await signIn(cleanEmail, 'TemporaryPassword123!');
+        
+        if (!signInError) {
+          // Login funcionou! Usuário já estava cadastrado.
+          toast.success('Bem-vindo de volta! Retomando seu teste...');
+          return; // AuthContext vai atualizar e levar para o Dashboard/Quiz
+        }
+
+        // 2. Se falhou (ex: é admin ou mudou a senha), consulta a API
         const { exists, user } = await apiCheckUser(cleanEmail);
         
         if (exists) {
-          // User already in DB! Log them in immediately
           const existingName = user?.name || cleanEmail.split('@')[0];
-          await signUp(cleanEmail, { name: existingName }); 
-          toast.success(`Bem-vindo de volta, ${existingName.split(' ')[0]}!`);
-          return; // Context change will trigger Dashboard view
+          setMode('login');
+          setLoginEmail(cleanEmail);
+          toast.info(`Olá ${existingName.split(' ')[0]}, sua conta já existe. Por favor, digite sua senha.`);
+          return;
         }
         
-        // New user? Continue registration (Name step is next)
+        // Novo usuário, prossegue com o cadastro
         setCurrentStep(currentStep + 1);
       } catch (err) {
         console.error('Check user failed:', err);
@@ -155,7 +165,13 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
     });
     setIsSubmitting(false);
     if (error) {
-      toast.error(error.message);
+      if (error.message.toLowerCase().includes('already registered')) {
+        toast.info('Este e-mail já está cadastrado. Por favor, faça login.');
+        setMode('login');
+        setLoginEmail(email);
+      } else {
+        toast.error(error.message);
+      }
     } else {
       toast.success('Bem-vindo ao Raio X Ex Devedor!');
     }
@@ -196,7 +212,7 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
             <div className="card-hooked p-6 sm:p-8">
               <div className="flex items-center gap-3 mb-8">
                 <div className="p-3 rounded-2xl bg-primary/10">
-                  <Lock className="h-6 w-6 text-primary" />
+                  <LockIcon className="h-6 w-6 text-primary" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-foreground">Área administrativa</h1>
@@ -208,17 +224,17 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-foreground/70 ml-1">E-mail</label>
                   <Input type="email" placeholder="admin@exemplo.com" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} onKeyDown={handleKeyDown}
-                    className="h-14 text-base bg-muted/50 border-input text-foreground font-medium placeholder:text-muted-foreground/50 rounded-2xl" autoFocus />
+                    className="h-14 px-5 text-base bg-muted/20 border-0 focus-visible:ring-1 focus-visible:ring-accent focus:bg-muted/30 rounded-full font-medium placeholder:text-muted-foreground/40 transition-colors" autoFocus />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-foreground/70 ml-1">Senha</label>
                   <Input type="password" placeholder="••••••••" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} onKeyDown={handleKeyDown}
-                    className="h-14 text-base bg-muted/50 border-input text-foreground font-medium placeholder:text-muted-foreground/50 rounded-2xl" />
+                    className="h-14 px-5 text-base bg-muted/20 border-0 focus-visible:ring-1 focus-visible:ring-accent focus:bg-muted/30 rounded-full font-medium placeholder:text-muted-foreground/40 transition-colors" />
                 </div>
               </div>
 
               <Button onClick={handleLogin} disabled={isSubmitting}
-                className="w-full h-14 text-lg font-bold btn-accent rounded-2xl disabled:opacity-50">
+                className="w-full h-14 text-lg font-bold btn-accent rounded-full disabled:opacity-50 shadow-lg shadow-accent/20">
                 {isSubmitting ? 'Entrando...' : 'Acessar Painel'}
               </Button>
 
@@ -241,7 +257,7 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
   }
 
   // ── Registration Wizard ─────────────────────────────────────────
-  const CurrentIcon = activeSteps[currentStep]?.icon || User;
+  const CurrentIcon = activeSteps[currentStep]?.icon || UserCircleIcon;
   const progress = ((currentStep + 1) / activeSteps.length) * 100;
   const currentStepId = activeSteps[currentStep]?.id;
   const currentLabel = activeSteps[currentStep]?.label || '';
@@ -266,75 +282,64 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
 
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 pb-20 sm:pb-24">
         <div className={`w-full max-w-xl transition-all duration-300 ${isTransitioning ? 'opacity-0 translate-y-4 scale-[0.99]' : 'opacity-100 translate-y-0 scale-100'}`}>
-          {/* Step counter */}
-          <div className="flex items-center gap-3 mb-10">
-            <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-accent text-accent-foreground text-sm font-black shadow-md shadow-accent/20">
-              {currentStep + 1}
-            </span>
-            <div className="h-px flex-1 bg-border/40" />
-            <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">{activeSteps.length} Passos</span>
-          </div>
-
           {/* Question */}
-          <div className="flex items-start gap-5 mb-10">
-            <div className="p-4 rounded-3xl bg-accent/10 border border-accent/20 shrink-0 mt-1 shadow-sm">
-              <CurrentIcon className="h-7 w-7 text-accent" />
+          <div className="text-center mb-10">
+            <div className="inline-flex p-4 rounded-full bg-accent/10 mb-6">
+              <CurrentIcon className="h-8 w-8 text-accent" />
             </div>
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-black text-foreground leading-tight mb-2 tracking-tight">
-                {currentLabel}
-              </h1>
-              <p className="text-base font-medium text-muted-foreground">{currentSubtitle}</p>
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-2 tracking-tight">
+              {currentLabel}
+            </h1>
+            <p className="text-sm font-medium text-muted-foreground">{currentSubtitle}</p>
           </div>
 
           {/* Input */}
-          <div className="mb-10">
+          <div className="mb-10 px-4">
             {currentStepId === 'name' && (
               <Input type="text" placeholder="Nome completo" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={handleKeyDown}
-                className="h-16 text-xl bg-card border-border text-foreground font-semibold placeholder:text-muted-foreground/30 focus:border-accent focus:ring-accent/10 rounded-2xl shadow-sm" autoFocus />
+                className="h-14 w-full text-center text-lg bg-muted/20 border-0 focus-visible:ring-1 focus-visible:ring-accent focus:bg-muted/30 rounded-full font-medium placeholder:text-muted-foreground/40 transition-colors" autoFocus />
             )}
             {currentStepId === 'email' && (
               <Input type="email" placeholder="seuemail@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={handleKeyDown}
-                className="h-16 text-xl bg-card border-border text-foreground font-semibold placeholder:text-muted-foreground/30 focus:border-accent focus:ring-accent/10 rounded-2xl shadow-sm" autoFocus />
+                className="h-14 w-full text-center text-lg bg-muted/20 border-0 focus-visible:ring-1 focus-visible:ring-accent focus:bg-muted/30 rounded-full font-medium placeholder:text-muted-foreground/40 transition-colors" autoFocus />
             )}
 
             {currentStepId === 'gender' && (
               <Select value={gender} onValueChange={setGender}>
-                <SelectTrigger className="h-16 text-xl bg-card border-border text-foreground font-semibold focus:border-accent focus:ring-accent/10 rounded-2xl shadow-sm">
+                <SelectTrigger className="h-14 w-full text-center text-lg bg-muted/20 border-0 focus:ring-1 focus:ring-accent rounded-full font-medium transition-colors justify-center [&>span]:text-center [&>span]:w-full">
                   <SelectValue placeholder="Selecione seu sexo" />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl">
-                  <SelectItem value="Masculino" className="text-lg py-3 rounded-xl">Masculino</SelectItem>
-                  <SelectItem value="Feminino" className="text-lg py-3 rounded-xl">Feminino</SelectItem>
-                  <SelectItem value="Outro" className="text-lg py-3 rounded-xl">Outro</SelectItem>
+                  <SelectItem value="Masculino" className="text-base py-3 rounded-xl cursor-pointer">Masculino</SelectItem>
+                  <SelectItem value="Feminino" className="text-base py-3 rounded-xl cursor-pointer">Feminino</SelectItem>
+                  <SelectItem value="Outro" className="text-base py-3 rounded-xl cursor-pointer">Outro</SelectItem>
                 </SelectContent>
               </Select>
             )}
 
             {currentStepId === 'region' && (
               <Select value={region} onValueChange={setRegion}>
-                <SelectTrigger className="h-16 text-xl bg-card border-border text-foreground font-semibold focus:border-accent focus:ring-accent/10 rounded-2xl shadow-sm">
+                <SelectTrigger className="h-14 w-full text-center text-lg bg-muted/20 border-0 focus:ring-1 focus:ring-accent rounded-full font-medium transition-colors justify-center [&>span]:text-center [&>span]:w-full">
                   <SelectValue placeholder="Selecione seu estado" />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl">
                   {STATES.map((r) => (
-                    <SelectItem key={r} value={r} className="text-lg py-3 rounded-xl">{r}</SelectItem>
+                    <SelectItem key={r} value={r} className="text-base py-3 rounded-xl cursor-pointer">{r}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             )}
             {currentStepId === 'birthDate' && (
               <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} onKeyDown={handleKeyDown}
-                className="h-16 text-xl bg-card border-border text-foreground font-semibold focus:border-accent focus:ring-accent/10 rounded-2xl shadow-sm" autoFocus />
+                className="h-14 w-full text-center text-lg bg-muted/20 border-0 focus-visible:ring-1 focus-visible:ring-accent focus:bg-muted/30 rounded-full font-medium text-foreground transition-colors" autoFocus />
             )}
             {currentStepId === 'profession' && (
               <Input type="text" placeholder="Sua ocupação principal" value={profession} onChange={(e) => setProfession(e.target.value)} onKeyDown={handleKeyDown}
-                className="h-16 text-xl bg-card border-border text-foreground font-semibold placeholder:text-muted-foreground/30 focus:border-accent focus:ring-accent/10 rounded-2xl shadow-sm" autoFocus />
+                className="h-14 w-full text-center text-lg bg-muted/20 border-0 focus-visible:ring-1 focus-visible:ring-accent focus:bg-muted/30 rounded-full font-medium placeholder:text-muted-foreground/40 transition-colors" autoFocus />
             )}
             {currentStepId === 'whatsapp' && (
               <Input type="tel" placeholder="(00) 00000-0000" value={whatsapp} onChange={handleWhatsappChange} onKeyDown={handleKeyDown}
-                className="h-16 text-xl bg-card border-border text-foreground font-semibold placeholder:text-muted-foreground/30 focus:border-accent focus:ring-accent/10 rounded-2xl shadow-sm" autoFocus />
+                className="h-14 w-full text-center text-lg bg-muted/20 border-0 focus-visible:ring-1 focus-visible:ring-accent focus:bg-muted/30 rounded-full font-medium placeholder:text-muted-foreground/40 transition-colors" autoFocus />
             )}
             {currentStepId === 'lgpd' && (
               <div className="space-y-5">
@@ -360,20 +365,20 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-3 px-4">
             <Button type="button" onClick={handleNext} disabled={!getCurrentValue() || isSubmitting}
-              className="h-16 px-10 text-xl font-black btn-accent rounded-3xl transition-all disabled:opacity-40 w-full sm:flex-1 gap-3 order-1 sm:order-2">
+              className="h-14 px-10 text-lg font-bold btn-accent rounded-full transition-all disabled:opacity-40 w-full sm:flex-1 gap-2 order-1 sm:order-2 shadow-lg shadow-accent/20">
               {currentStep === activeSteps.length - 1 ? (
-                isSubmitting ? 'Finalizando...' : <><Check className="h-6 w-6 stroke-[3]" />Gerar Diagnóstico</>
+                isSubmitting ? 'Finalizando...' : <><CheckmarkBadge01Icon className="h-5 w-5 stroke-[3]" />Gerar Diagnóstico</>
               ) : (
-                <>Continuar<ArrowRight className="h-6 w-6 stroke-[3]" /></>
+                <>Continuar<ArrowRight01Icon className="h-5 w-5 stroke-[3]" /></>
               )}
             </Button>
             {currentStep > 0 && (
               <Button type="button" variant="ghost" onClick={handleBack}
-                className="h-16 px-6 text-muted-foreground font-bold hover:text-foreground hover:bg-muted/50 rounded-3xl gap-2 w-full sm:w-auto order-2 sm:order-1 transition-all">
-                <ArrowLeft className="h-5 w-5" />
-                Anterior
+                className="h-14 px-6 text-muted-foreground font-bold hover:text-foreground hover:bg-muted/50 rounded-full gap-2 w-full sm:w-auto order-2 sm:order-1 transition-all">
+                <ArrowLeft01Icon className="h-4 w-4" />
+                Voltar
               </Button>
             )}
           </div>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.png" type="image/png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Raio X Ex Devedor - Seu diagnóstico financeiro completo</title>
     <meta name="description" content="Descubra sua saúde financeira com o Raio X Ex Devedor. Controle suas receitas, despesas e saiba quanto pode gastar por dia, semana e mês." />
     <meta name="author" content="Raio X Ex Devedor" />
@@ -13,6 +13,16 @@
     <meta property="og:type" content="website" />
     
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#061A35" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js');
+        });
+      }
+    </script>
   </head>
 
   <body>

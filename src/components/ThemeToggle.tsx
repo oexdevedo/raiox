@@ -1,4 +1,4 @@
-import { Moon, Sun } from "lucide-react"
+import { Moon02Icon as Moon, Sun01Icon as Sun } from "hugeicons-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "@/contexts/ThemeContext"
 

@@ -1,5 +1,5 @@
 import { FinancialAnalysis } from '@/types/financial';
-import { Clock, CalendarDays, CalendarRange, Wallet } from 'lucide-react';
+import { Clock01Icon as Clock, Calendar01Icon as CalendarDays, Calendar02Icon as CalendarRange, Wallet01Icon as Wallet } from 'hugeicons-react';
 
 interface SpendingLimitsProps {
   analysis: FinancialAnalysis;
@@ -50,8 +50,8 @@ export const SpendingLimits = ({ analysis }: SpendingLimitsProps) => {
             <Wallet className="h-6 w-6 sm:h-7 sm:w-7 text-accent" />
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">Onde está o limite?</h3>
-            <p className="text-base font-medium text-muted-foreground">Analise quanto você ainda pode gastar com segurança.</p>
+            <h3 className="text-lg sm:text-2xl font-black text-foreground tracking-tight">Onde está o limite?</h3>
+            <p className="text-sm sm:text-base font-medium text-muted-foreground">Analise quanto você ainda pode gastar com segurança.</p>
           </div>
         </div>
 
@@ -71,17 +71,15 @@ export const SpendingLimits = ({ analysis }: SpendingLimitsProps) => {
               return (
                 <div
                   key={limit.label}
-                  className="flex items-center gap-4 sm:gap-5 p-4 sm:p-6 rounded-3xl bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-border/40 transition-all duration-300 hover-lift"
+                  className="flex items-start gap-4 sm:gap-5 p-4 sm:p-6 rounded-3xl bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-border/40 transition-all duration-300 hover-lift"
                 >
-                  <div className={`p-3 sm:p-4 rounded-2xl ${limit.iconBg} shrink-0 shadow-sm`}>
+                  <div className={`p-3 sm:p-4 rounded-2xl ${limit.iconBg} shrink-0 shadow-sm mt-0.5`}>
                     <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${limit.iconColor}`} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-0.5 sm:mb-1 truncate">{limit.label}</p>
-                    <p className="text-lg sm:text-2xl font-black text-foreground tabular-nums tracking-tight truncate">{formatCurrency(limit.value)}</p>
-                  </div>
-                  <div className="hidden sm:block text-right">
-                    <p className="text-xs font-bold text-muted-foreground/60 leading-tight max-w-[120px]">
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1 truncate">{limit.label}</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-black text-foreground tabular-nums tracking-tight mb-1 truncate">{formatCurrency(limit.value)}</p>
+                    <p className="text-xs font-bold text-muted-foreground/70 leading-relaxed">
                       {limit.description}
                     </p>
                   </div>

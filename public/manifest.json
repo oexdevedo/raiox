@@ -1,0 +1,22 @@
+{
+  "name": "Raio X Ex Devedor",
+  "short_name": "Raio X",
+  "description": "Seu diagnóstico financeiro completo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E1E2E5",
+  "theme_color": "#061A35",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

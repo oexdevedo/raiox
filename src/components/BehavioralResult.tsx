@@ -1,7 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Brain, ArrowLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { 
+  BrainIcon as Brain, 
+  ArrowLeft01Icon as ArrowLeft, 
+  ArrowUpRight01Icon as TrendingUp, 
+  ArrowDownRight01Icon as TrendingDown, 
+  MinusSignIcon as Minus 
+} from 'hugeicons-react';
 import { FinancialAnalysis } from '@/types/financial';
 import {
   BehavioralResult as BehavioralResultType,
@@ -89,112 +95,116 @@ export const BehavioralResultView = ({ result, analysis, onBack }: BehavioralRes
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 gradient-primary shadow-lg">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-secondary" />
-              <span className="text-sm sm:text-base font-bold text-primary-foreground">
-                Resultado do Raio X
-              </span>
+      <main className="container mx-auto px-4 py-8 max-w-2xl space-y-10">
+        
+        {/* The Reward Reveal */}
+        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-card to-muted/20 border border-border/10 shadow-2xl p-8 text-center animate-in zoom-in-95 duration-700">
+          <div className="absolute top-0 right-0 -mr-8 -mt-8 w-40 h-40 bg-accent opacity-[0.08] rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-40 h-40 bg-primary opacity-[0.08] rounded-full blur-3xl"></div>
+          
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="inline-flex items-center justify-center p-4 rounded-full bg-accent/10 mb-6 shadow-inner border border-accent/10">
+              <Brain className="h-10 w-10 text-accent animate-pulse" />
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 gap-1"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Dashboard</span>
-            </Button>
+            
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-3">Sua Eficiência Financeira</p>
+            
+            <div className="text-7xl font-black text-foreground tracking-tighter mb-4 flex items-start justify-center">
+              {result.totalPercentage}<span className="text-3xl text-accent mt-2">%</span>
+            </div>
+            
+            <div className={`inline-flex items-center px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest ${levelStyles.bg} ${levelStyles.color} border mb-6 shadow-sm`}>
+              Nível: {result.level}
+            </div>
+            
+            <p className="text-sm font-medium text-muted-foreground max-w-xs mx-auto leading-relaxed">
+              O seu modelo de crenças sobre dinheiro revela o quanto você está preparado para a riqueza.
+            </p>
           </div>
         </div>
-      </header>
-
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-3xl space-y-4 sm:space-y-6">
-        <Card className={`border-2 ${levelStyles.bg} shadow-card animate-fade-in`}>
-          <CardContent className="p-4 sm:p-6 text-center">
-            <h2 className="text-base sm:text-xl font-bold text-foreground mb-2">
-              Sua Mentalidade Financeira
-            </h2>
-            <div className={`text-4xl sm:text-6xl font-extrabold ${levelStyles.color} mb-1 flex justify-center items-center gap-4`}>
-              <Brain className={`h-10 w-10 sm:h-12 sm:w-12 ${levelStyles.color}`} />
-              {result.totalPercentage}%
-            </div>
-            <p className={`text-lg sm:text-2xl font-bold ${levelStyles.color} mt-2`}>
-              Perfil {result.level}
-            </p>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-              Resultado oficial do seu questionário comportamental.
-            </p>
-          </CardContent>
-        </Card>
 
         {/* Radar Chart */}
-        <Card className="shadow-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm sm:text-base">Mapa Comportamental</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="w-full h-[250px] sm:h-[300px]">
+        <div>
+          <div className="flex items-center gap-3 mb-4 px-2">
+            <div className="w-1.5 h-6 bg-accent rounded-full"></div>
+            <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Mapeamento Neural</h3>
+          </div>
+          <div className="p-4 sm:p-6 rounded-[2rem] bg-card border border-border/10 shadow-md">
+            <div className="w-full h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-                  <PolarGrid stroke="hsl(var(--border))" />
+                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="65%">
+                  <PolarGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
                   <PolarAngleAxis
                     dataKey="section"
-                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    tick={{ fontSize: 10, fill: 'hsl(var(--foreground))', fontWeight: 700 }}
                   />
                   <PolarRadiusAxis
                     angle={90}
                     domain={[0, 100]}
-                    tick={{ fontSize: 9 }}
-                    tickCount={5}
+                    tick={false}
+                    axisLine={false}
                   />
                   <Radar
                     name="Score"
                     dataKey="score"
                     stroke="hsl(var(--accent))"
                     fill="hsl(var(--accent))"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
+                    fillOpacity={0.25}
+                    strokeWidth={3}
                   />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Section Details */}
-        <div className="space-y-3">
-          {sections.map((section) => {
-            const s = result.sectionScores[section];
-            const cfg = sectionConfig[section];
-            return (
-              <Card key={section} className="shadow-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">{cfg.icon}</span>
-                    <h3 className="text-sm sm:text-base font-bold text-foreground">{section}</h3>
-                    <span className="ml-auto text-sm sm:text-base font-bold text-foreground">
-                      {s.percentage}%
-                    </span>
-                  </div>
-                  <Progress value={s.percentage} className="h-2 mb-2" />
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    {getSectionFeedback(section, s.percentage)}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
+          </div>
         </div>
 
-        {/* Back to Dashboard */}
-        <div className="text-center pb-8">
-          <Button onClick={onBack} className="gradient-accent text-primary">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar ao Dashboard
+        {/* Section Details */}
+        <div>
+          <div className="flex items-center gap-3 mb-4 px-2">
+            <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+            <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Análise Detalhada</h3>
+          </div>
+          
+          <div className="grid gap-4">
+            {sections.map((section) => {
+              const s = result.sectionScores[section];
+              const cfg = sectionConfig[section];
+              return (
+                <div key={section} className="p-5 sm:p-6 rounded-[2rem] bg-card border border-border/10 shadow-md hover:shadow-lg transition-all group">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="p-3 rounded-2xl bg-muted/30 text-2xl group-hover:scale-110 group-hover:bg-accent/10 transition-all duration-300">
+                      {cfg.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-black text-foreground tracking-tight mb-0.5">{section}</h4>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Pilar Comportamental</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-2xl font-black text-accent">{s.percentage}%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="relative h-2.5 w-full bg-muted/30 rounded-full overflow-hidden mb-5">
+                    <div 
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-accent to-secondary rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${s.percentage}%` }}
+                    />
+                  </div>
+                  
+                  <p className="text-sm font-medium text-muted-foreground leading-relaxed bg-muted/10 p-4 rounded-2xl border border-border/5">
+                    {getSectionFeedback(section, s.percentage)}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="pt-6 pb-12">
+          <Button onClick={onBack} className="w-full h-16 rounded-[2rem] text-lg font-black bg-accent text-accent-foreground shadow-xl shadow-accent/20 flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] hover:bg-accent/90">
+            Continuar para o Raio X
+            <ArrowLeft className="h-5 w-5 rotate-180 stroke-[3]" />
           </Button>
         </div>
       </main>

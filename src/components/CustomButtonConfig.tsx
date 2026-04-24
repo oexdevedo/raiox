@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, AlertTriangle, MinusCircle, CheckCircle, Save } from 'lucide-react';
+import { ArrowUpRight01Icon as ExternalLink, Alert01Icon as AlertTriangle, MinusSignCircleIcon as MinusCircle, CheckmarkCircle02Icon as CheckCircle, FloppyDiskIcon as Save } from 'hugeicons-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 

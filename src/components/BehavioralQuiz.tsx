@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight, Brain } from 'lucide-react';
+import { ArrowLeft01Icon as ChevronLeft, ArrowRight01Icon as ChevronRight, BrainIcon as Brain } from 'hugeicons-react';
 import {
   questions,
   options,

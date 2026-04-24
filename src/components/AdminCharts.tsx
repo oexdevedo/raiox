@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
-import { BarChart3 } from 'lucide-react';
+import { ChartHistogramIcon as BarChart3 } from 'hugeicons-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UserData {

@@ -14,22 +14,23 @@ import { BehavioralResultView } from '@/components/BehavioralResult';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
+import { MobileNav } from '@/components/MobileNav';
 import { 
-  LogOut, 
-  RefreshCw, 
-  Brain, 
-  User as UserIcon, 
-  ExternalLink, 
-  XCircle, 
-  AlertTriangle, 
-  CheckCircle2, 
-  ChevronRight, 
-  ChevronLeft,
-  ArrowRight,
-  LineChart,
-  ClipboardList,
-  Sparkles
-} from 'lucide-react';
+  Logout01Icon as LogOut, 
+  ReloadIcon as RefreshCw, 
+  BrainIcon as Brain, 
+  UserCircleIcon as UserIcon, 
+  ArrowUpRight01Icon as ExternalLink, 
+  CancelCircleIcon as XCircle, 
+  Alert01Icon as AlertTriangle, 
+  CheckmarkCircle02Icon as CheckCircle2, 
+  ArrowRight01Icon as ChevronRight, 
+  ArrowLeft01Icon as ChevronLeft,
+  ArrowRight01Icon as ArrowRight,
+  ChartHistogramIcon as LineChart,
+  Task01Icon as ClipboardList,
+  SparklesIcon as Sparkles
+} from 'hugeicons-react';
 import { toast } from 'sonner';
 import { BehavioralAnswers, calculateBehavioralResult, BehavioralResult } from '@/types/behavioral';
 import { useCustomButtons } from '@/hooks/useCustomButtons';
@@ -184,8 +185,8 @@ export const Dashboard = () => {
         </div>
       </header>
 
-      {/* Progress Stepper - Optimized UI */}
-      <div className="bg-muted/5 border-b border-border/5">
+      {/* Progress Stepper - Optimized UI - Hidden on Mobile */}
+      <div className="bg-muted/5 border-b border-border/5 hidden sm:block">
         <div className="container mx-auto px-2 sm:px-4 py-6 sm:py-8 max-w-4xl">
           <div className="relative flex justify-between items-center px-2 sm:px-12">
             {/* Progress line */}
@@ -230,7 +231,7 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-6xl">
+      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-6xl pb-32 sm:pb-12">
         {/* STEP 1: BEHAVIORAL QUIZ */}
         {currentStep === 1 && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -242,17 +243,17 @@ export const Dashboard = () => {
                   <div className="p-4 rounded-3xl bg-accent/10 w-fit mx-auto">
                     <Sparkles className="h-10 w-10 text-accent" />
                   </div>
-                  <h2 className="text-3xl font-black text-foreground tracking-tight">Perfil Já Concluído!</h2>
-                  <p className="text-lg font-medium text-muted-foreground">
+                  <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">Perfil Já Concluído!</h2>
+                  <p className="text-base sm:text-lg font-medium text-muted-foreground">
                     Você já realizou o protocolo comportamental. Sua mentalidade: <span className="text-accent font-black">{behavioralResult.level}</span>.
                   </p>
-                  <div className="flex justify-center gap-4 pt-4">
-                    <Button onClick={() => setBehavioralResult(null)} variant="outline" className="rounded-2xl h-14 px-8 font-bold border-border/40">
-                      Refazer Quiz
-                    </Button>
-                    <Button onClick={() => setCurrentStep(2)} className="btn-accent h-14 px-10 rounded-2xl font-black shadow-lg shadow-accent/20">
+                  <div className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 pt-4 px-2 sm:px-0 w-full">
+                    <Button onClick={() => setCurrentStep(2)} className="bg-accent text-accent-foreground h-14 w-full sm:w-auto px-6 sm:px-10 rounded-full font-black shadow-lg shadow-accent/20 order-1 sm:order-2 hover:bg-accent/90">
                       Ir para Raio X Financeiro
-                      <ArrowRight className="ml-2 h-5 w-5" />
+                      <ArrowRight className="ml-2 h-5 w-5 shrink-0" />
+                    </Button>
+                    <Button onClick={() => setBehavioralResult(null)} className="rounded-full h-14 w-full sm:w-auto px-6 sm:px-8 font-bold bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-md order-2 sm:order-1">
+                      Refazer Quiz
                     </Button>
                   </div>
                 </div>
@@ -264,35 +265,36 @@ export const Dashboard = () => {
 
         {/* STEP 2: FINANCIAL DATA */}
         {currentStep === 2 && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
+            <div className="flex flex-col mb-6">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-black text-foreground mb-2 tracking-tight">Raio X Financeiro</h2>
-                <p className="text-lg font-medium text-muted-foreground">Insira suas receitas e despesas para gerar o diagnóstico.</p>
+                <h2 className="text-2xl sm:text-4xl font-black text-foreground mb-2 tracking-tight">Raio X Financeiro</h2>
+                <p className="text-base sm:text-lg font-medium text-muted-foreground">Insira suas receitas e despesas para gerar o diagnóstico.</p>
               </div>
-              <Button 
-                onClick={() => setCurrentStep(3)} 
-                disabled={incomes.length === 0 && expenses.length === 0}
-                className="btn-accent h-16 px-10 rounded-2xl font-black text-lg shadow-xl shadow-accent/20 w-full sm:w-auto"
-              >
-                Gerar Diagnóstico
-                <ArrowRight className="ml-3 h-6 w-6 stroke-[3]" />
-              </Button>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-6">
               <IncomeForm incomes={incomes} onAdd={addIncome} onRemove={removeIncome} />
               <ExpenseForm expenses={expenses} onAdd={addExpense} onRemove={removeExpense} />
             </div>
 
-            {(incomes.length > 0 || expenses.length > 0) && (
-              <div className="pt-12 text-center">
-                <Button variant="ghost" onClick={handleClear} className="text-muted-foreground hover:text-destructive gap-2 font-bold uppercase tracking-widest text-[10px]">
+            <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button 
+                onClick={() => setCurrentStep(3)} 
+                disabled={incomes.length === 0 && expenses.length === 0}
+                className="btn-accent h-16 px-10 rounded-2xl font-black text-lg shadow-xl shadow-accent/20 w-full sm:w-auto order-1 sm:order-2"
+              >
+                Gerar Diagnóstico
+                <ArrowRight className="ml-3 h-6 w-6 stroke-[3]" />
+              </Button>
+              
+              {(incomes.length > 0 || expenses.length > 0) && (
+                <Button variant="ghost" onClick={handleClear} className="text-muted-foreground hover:text-destructive gap-2 font-bold uppercase tracking-widest text-[10px] order-2 sm:order-1 w-full sm:w-auto h-16">
                   <RefreshCw className="h-4 w-4" />
-                  Limpar todos os dados e recomeçar
+                  Limpar dados
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
@@ -301,8 +303,8 @@ export const Dashboard = () => {
           <div className="animate-in fade-in zoom-in-95 duration-500 space-y-10">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-black text-foreground mb-1 tracking-tight">Diagnóstico Final</h2>
-                <p className="text-lg font-medium text-muted-foreground">Baseado no seu perfil comportamental e números financeiros.</p>
+                <h2 className="text-2xl sm:text-4xl font-black text-foreground mb-1 tracking-tight">Diagnóstico Final</h2>
+                <p className="text-base sm:text-lg font-medium text-muted-foreground">Baseado no seu perfil comportamental e números financeiros.</p>
               </div>
               <Button variant="outline" onClick={() => setCurrentStep(2)} className="rounded-2xl h-11 px-6 font-black border-border/10 gap-2 hover:bg-muted/50 transition-all">
                 <ChevronLeft className="h-4 w-4" />
@@ -378,7 +380,7 @@ export const Dashboard = () => {
             )}
 
             {/* Bottom Row: 3-Column Specific Grid */}
-            <div className="grid md:grid-cols-3 gap-6 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
               {/* Box 1: Spending Limits */}
               <SpendingLimits analysis={analysis} />
 
@@ -430,6 +432,17 @@ export const Dashboard = () => {
           </div>
         )}
       </main>
+
+      {/* Mobile Navigation */}
+      <MobileNav 
+        currentStep={currentStep} 
+        onStepChange={(step) => setCurrentStep(step)}
+        disabledSteps={[
+          false, // Step 1 is always available
+          !behavioralResult, // Step 2 needs quiz
+          incomes.length === 0 && expenses.length === 0 // Step 3 needs data
+        ]}
+      />
 
       {/* Status Popup Dialog */}
       <Dialog open={showStatusPopup} onOpenChange={setShowStatusPopup}>
@@ -496,3 +509,4 @@ export const Dashboard = () => {
     </div>
   );
 };
+

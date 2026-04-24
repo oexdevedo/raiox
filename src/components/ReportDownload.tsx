@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Income, Expense, FinancialAnalysis, CustomButtons } from '@/types/financial';
-import { Download, FileText, ExternalLink } from 'lucide-react';
+import { Download01Icon as Download, File02Icon as FileText, ArrowUpRight01Icon as ExternalLink } from 'hugeicons-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'sonner';
