@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { STATES } from '@/types/financial';
 import { Checkbox } from '@/components/ui/checkbox';
 import { apiCheckUser } from '@/lib/api';
-
+import { isValidFullName, isValidEmail, isValidBrazilianPhone } from '@/lib/validators';
 const STEPS = [
   { id: 'email', label: 'Qual é o seu melhor e-mail?', subtitle: 'Usaremos para identificar seu histórico', icon: Mail01Icon },
   { id: 'name', label: 'Qual é o seu nome completo?', subtitle: 'Nos conte como devemos te chamar', icon: UserCircleIcon },
@@ -72,12 +72,16 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
 
   const validateCurrentStep = (): boolean => {
     switch (activeSteps[currentStep]?.id) {
-      case 'name':
-        if (!name.trim()) { toast.error('Por favor, insira seu nome'); return false; }
+      case 'name': {
+        const nameVal = isValidFullName(name);
+        if (!nameVal.valid) { toast.error(nameVal.error); return false; }
         return true;
-      case 'email':
-        if (!email || !email.includes('@')) { toast.error('Por favor, insira um e-mail válido'); return false; }
+      }
+      case 'email': {
+        const emailVal = isValidEmail(email);
+        if (!emailVal.valid) { toast.error(emailVal.error); return false; }
         return true;
+      }
       case 'gender':
         if (!gender) { toast.error('Por favor, selecione seu sexo'); return false; }
         return true;
@@ -90,9 +94,11 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
       case 'profession':
         if (!profession.trim()) { toast.error('Por favor, insira sua profissão'); return false; }
         return true;
-      case 'whatsapp':
-        if (whatsapp.replace(/\D/g, '').length < 10) { toast.error('Por favor, insira um WhatsApp válido'); return false; }
+      case 'whatsapp': {
+        const phoneVal = isValidBrazilianPhone(whatsapp);
+        if (!phoneVal.valid) { toast.error(phoneVal.error); return false; }
         return true;
+      }
       case 'lgpd':
         if (!lgpdConsent) { toast.error('Você precisa concordar com a política de uso de dados para continuar'); return false; }
         return true;
