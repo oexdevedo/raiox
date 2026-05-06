@@ -6,7 +6,7 @@ import { LandingPage } from '@/components/LandingPage';
 
 const AppContent = () => {
   const { isAuthenticated, loading } = useAuth();
-  const [view, setView] = useState<'landing' | 'login' | 'register'>('landing');
+  const [view, setView] = useState<'landing' | 'register'>('landing');
 
   if (loading) {
     return (
@@ -24,7 +24,6 @@ const AppContent = () => {
       return (
         <LandingPage 
           onStart={() => setView('register')} 
-          onLogin={() => setView('login')} 
         />
       );
     }

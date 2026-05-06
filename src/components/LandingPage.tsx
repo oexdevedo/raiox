@@ -12,10 +12,9 @@ import {
 
 interface LandingPageProps {
   onStart: () => void;
-  onLogin: () => void;
 }
 
-export const LandingPage = ({ onStart, onLogin }: LandingPageProps) => {
+export const LandingPage = ({ onStart }: LandingPageProps) => {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-500 overflow-x-hidden">
       {/* Decorative background elements */}
@@ -28,9 +27,6 @@ export const LandingPage = ({ onStart, onLogin }: LandingPageProps) => {
         <div className="container mx-auto flex justify-between items-center">
           <Logo size="sm" />
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={onLogin} className="hidden sm:flex font-bold text-sm uppercase tracking-widest text-muted-foreground hover:text-foreground">
-              Já tenho conta
-            </Button>
             <ThemeToggle />
           </div>
         </div>
@@ -62,13 +58,6 @@ export const LandingPage = ({ onStart, onLogin }: LandingPageProps) => {
               >
                 Começar Meu Raio X
                 <ArrowRight className="ml-2 h-6 w-6 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={onLogin}
-                className="h-16 px-8 text-lg font-bold rounded-2xl border-border/20 bg-card/50 backdrop-blur-sm sm:hidden w-full"
-              >
-                Acessar Minha Conta
               </Button>
             </div>
 
