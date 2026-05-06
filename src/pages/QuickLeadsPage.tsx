@@ -82,9 +82,9 @@ const QuickLeadsPage = () => {
             <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckBadge className="h-10 w-10 text-green-600" />
             </div>
-            <h1 className="text-3xl font-black text-foreground">Obrigado!</h1>
+            <h1 className="text-3xl font-black text-foreground">Quase lá!</h1>
             <p className="text-muted-foreground font-medium">
-              Seus dados foram recebidos. Em breve entraremos em contato.
+              Seus dados foram registrados. Em breve você receberá as instruções para o acesso antecipado ao <span className="text-accent font-bold">Tutu</span>.
             </p>
             <Button 
               variant="outline" 
@@ -113,8 +113,8 @@ const QuickLeadsPage = () => {
       <main className="relative z-10 flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-black text-foreground tracking-tight">Receber Diagnóstico</h1>
-            <p className="text-sm font-medium text-muted-foreground">Preencha os campos abaixo para começar.</p>
+            <h1 className="text-3xl font-black text-foreground tracking-tight">Cadastro</h1>
+            <p className="text-sm font-medium text-muted-foreground">Receba acesso antecipado ao <span className="text-accent font-bold">Tutu</span> assistente financeiro</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -168,9 +168,9 @@ const QuickLeadsPage = () => {
               disabled={isSubmitting}
               className="w-full h-16 text-lg font-black btn-accent rounded-2xl shadow-xl shadow-accent/20 mt-6 group"
             >
-              {isSubmitting ? 'Enviando...' : (
+              {isSubmitting ? 'Garantindo Acesso...' : (
                 <>
-                  Enviar Dados
+                  Garantir Meu Acesso
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
