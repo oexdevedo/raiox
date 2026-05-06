@@ -22,7 +22,6 @@ const QuickLeadsPage = () => {
   const [email, setEmail] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   const formatWhatsapp = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -82,12 +81,17 @@ const QuickLeadsPage = () => {
         }, { onConflict: 'user_id' });
       }
       
-      setIsSuccess(true);
+      
+      setName('');
+      setEmail('');
+      setWhatsapp('');
       toast.success('Dados enviados com sucesso!');
     } catch (err: any) {
       if (err.message?.includes('already registered')) {
         toast.info('Este e-mail já está em nossa base.');
-        setIsSuccess(true);
+        setName('');
+        setEmail('');
+        setWhatsapp('');
       } else {
         toast.error('Erro ao enviar dados. Tente novamente.');
         console.error(err);
@@ -97,30 +101,6 @@ const QuickLeadsPage = () => {
     }
   };
 
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background items-center justify-center p-4">
-        <Card className="w-full max-w-md card-hooked border-none shadow-2xl overflow-hidden">
-          <CardContent className="p-10 text-center space-y-6">
-            <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckBadge className="h-10 w-10 text-green-600" />
-            </div>
-            <h1 className="text-3xl font-black text-foreground">Quase lá!</h1>
-            <p className="text-muted-foreground font-medium">
-              Seus dados foram registrados. Em breve você receberá as instruções para o acesso antecipado ao <span className="text-accent font-bold">Tutu</span>.
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => window.location.href = '/'}
-              className="w-full h-14 rounded-2xl font-bold border-border/10 hover:bg-muted/50"
-            >
-              Voltar ao Início
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background transition-colors duration-500 relative overflow-hidden">
