@@ -67,6 +67,20 @@ const QuickLeadsPage = () => {
       });
 
       if (signUpError) throw signUpError;
+
+      // Fallback: Manually insert/upsert into profiles table to ensure it shows up in Admin
+      // This covers cases where the trigger might be delayed or fail
+      if (data.user) {
+        await supabase.from('profiles').upsert({
+          user_id: data.user.id,
+          name,
+          email: email.trim().toLowerCase(),
+          whatsapp,
+          region: 'Não informado',
+          profession: 'Lead Rápido',
+          birth_date: '0000-00-00'
+        }, { onConflict: 'user_id' });
+      }
       
       setIsSuccess(true);
       toast.success('Dados enviados com sucesso!');
