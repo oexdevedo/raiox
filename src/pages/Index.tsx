@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/LoginForm';
 import { Dashboard } from '@/components/Dashboard';
+import { LandingPage } from '@/components/LandingPage';
 
 const AppContent = () => {
   const { isAuthenticated, loading } = useAuth();
+  const [view, setView] = useState<'landing' | 'login' | 'register'>('landing');
 
   if (loading) {
     return (
@@ -17,7 +20,21 @@ const AppContent = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginForm />;
+    if (view === 'landing') {
+      return (
+        <LandingPage 
+          onStart={() => setView('register')} 
+          onLogin={() => setView('login')} 
+        />
+      );
+    }
+    
+    return (
+      <LoginForm 
+        forceLogin={view === 'login'} 
+        onBack={() => setView('landing')} 
+      />
+    );
   }
 
   return <Dashboard />;

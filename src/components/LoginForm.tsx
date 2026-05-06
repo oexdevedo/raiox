@@ -24,7 +24,7 @@ const STEPS = [
 
 type Mode = 'register' | 'login';
 
-export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {}) => {
+export const LoginForm = ({ forceLogin = false, onBack }: { forceLogin?: boolean, onBack?: () => void }) => {
   const [mode, setMode] = useState<Mode>(forceLogin ? 'login' : 'register');
   const [currentStep, setCurrentStep] = useState(0);
   const [name, setName] = useState('');
@@ -122,10 +122,31 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
           return; // AuthContext vai atualizar e levar para o Dashboard/Quiz
         }
 
-        // 2. Se falhou (ex: é admin ou mudou a senha), consulta a API
+        // 2. Se falhou (ex: é admin ou usuário legado migrado), consulta a API
         const { exists, user } = await apiCheckUser(cleanEmail);
         
         if (exists) {
+          // Tenta recriar o usuário no auth (para usuários legados da migração que só existem no profiles)
+          const { error: signUpError } = await signUp(cleanEmail, {
+            name: user?.name || '',
+            gender: user?.gender || '',
+            region: user?.region || '',
+            birthDate: user?.birth_date || '',
+            whatsapp: user?.whatsapp || '',
+            profession: user?.profession || '',
+          });
+
+          // Se criou com sucesso, loga ele silenciosamente
+          if (!signUpError) {
+            const { error: retryLoginError } = await signIn(cleanEmail, 'TemporaryPassword123!');
+            if (!retryLoginError) {
+              toast.success('Bem-vindo de volta! Retomando seu teste...');
+              return;
+            }
+          }
+
+          // Se já existe no auth.users (signUpError com 'already registered') ou falhou o login
+          // Então é um Admin ou alguém que alterou a senha.
           const existingName = user?.name || cleanEmail.split('@')[0];
           setMode('login');
           setLoginEmail(cleanEmail);
@@ -244,7 +265,12 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
                 {isSubmitting ? 'Entrando...' : 'Acessar Painel'}
               </Button>
 
-              {!forceLogin ? (
+              {onBack ? (
+                <button onClick={onBack}
+                  className="w-full mt-6 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
+                  ← Voltar para o Início
+                </button>
+              ) : !forceLogin ? (
                 <button onClick={() => setMode('register')}
                   className="w-full mt-6 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
                   ← Voltar para o Diagnóstico
@@ -380,13 +406,19 @@ export const LoginForm = ({ forceLogin = false }: { forceLogin?: boolean } = {})
                 <>Continuar<ArrowRight01Icon className="h-5 w-5 stroke-[3]" /></>
               )}
             </Button>
-            {currentStep > 0 && (
+            {currentStep > 0 ? (
               <Button type="button" variant="ghost" onClick={handleBack}
                 className="h-14 px-6 text-muted-foreground font-bold hover:text-foreground hover:bg-muted/50 rounded-full gap-2 w-full sm:w-auto order-2 sm:order-1 transition-all">
                 <ArrowLeft01Icon className="h-4 w-4" />
                 Voltar
               </Button>
-            )}
+            ) : onBack ? (
+              <Button type="button" variant="ghost" onClick={onBack}
+                className="h-14 px-6 text-muted-foreground font-bold hover:text-foreground hover:bg-muted/50 rounded-full gap-2 w-full sm:w-auto order-2 sm:order-1 transition-all">
+                <ArrowLeft01Icon className="h-4 w-4" />
+                Início
+              </Button>
+            ) : null}
           </div>
 
           {/* Footer hint */}
