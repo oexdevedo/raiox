@@ -13,6 +13,7 @@ import {
   ArrowRight01Icon as ArrowRight
 } from 'hugeicons-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 import { apiRegister } from '@/lib/api';
 import { isValidEmail, isValidFullName, isValidBrazilianPhone } from '@/lib/validators';
 
@@ -49,15 +50,23 @@ const QuickLeadsPage = () => {
 
     setIsSubmitting(true);
     try {
-      await apiRegister({
-        name,
+      // Direct call to supabase to avoid dependency on api.ts which might not be updated on server
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
-        whatsapp,
-        region: 'Não informado',
-        profession: 'Lead Rápido',
-        gender: 'Não informado',
-        birth_date: '0000-00-00'
+        password: 'TemporaryPassword123!',
+        options: {
+          data: {
+            name,
+            whatsapp,
+            region: 'Não informado',
+            profession: 'Lead Rápido',
+            gender: 'Não informado',
+            birthDate: '0000-00-00'
+          }
+        }
       });
+
+      if (signUpError) throw signUpError;
       
       setIsSuccess(true);
       toast.success('Dados enviados com sucesso!');
